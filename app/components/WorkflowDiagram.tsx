@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { ReactFlow, Background, Controls, Node, Edge } from '@xyflow/react';
+import React, { useMemo, useState, useCallback } from 'react';
+import { ReactFlow, Background, Controls, Node, Edge, NodeMouseHandler } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CUSTOMER_SUCCESS_WORKFLOW, WorkflowNode } from '../constants/workflow';
+import NodeDetailsModal from './NodeDetailsModal';
 
 function treeToFlow(
   node: WorkflowNode,
@@ -39,13 +40,26 @@ function treeToFlow(
 
 export default function WorkflowDiagram() {
   const { nodes, edges } = useMemo(() => treeToFlow(CUSTOMER_SUCCESS_WORKFLOW), []);
+  const [selectedNode, setSelectedNode] = useState<{ id: string; label: string } | null>(null);
+  const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
+
+  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
+    setSelectedNode({ id: String(node.id), label: String(node.data.label) });
+    setModalPos({ x: event.clientX, y: event.clientY });
+  }, []);
 
   return (
     <div style={{ width: '100%', height: 600, background: '#f5f8ff', borderRadius: 8 }}>
-      <ReactFlow nodes={nodes} edges={edges} fitView>
+      <ReactFlow nodes={nodes} edges={edges} fitView onNodeClick={onNodeClick}>
         <Background />
         <Controls />
       </ReactFlow>
+      <NodeDetailsModal
+        open={!!selectedNode}
+        onClose={() => { setSelectedNode(null); setModalPos(null); }}
+        nodeData={selectedNode || undefined}
+        position={modalPos}
+      />
     </div>
   );
 } 
