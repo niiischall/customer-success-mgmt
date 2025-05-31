@@ -5,12 +5,19 @@ import React from 'react';
 interface NodeDetailsModalProps {
   open: boolean;
   onClose: () => void;
-  nodeData?: { id: string; label: string };
+  nodeData?: { id: string; label: string; type?: string };
   position?: { x: number; y: number } | null;
 }
 
 export default function NodeDetailsModal({ open, onClose, nodeData, position }: NodeDetailsModalProps) {
   if (!open || !nodeData || !position) return null;
+
+  // Extract type from label if not directly provided
+  let nodeType = nodeData.type;
+  if (!nodeType && nodeData.label) {
+    const match = nodeData.label.match(/\(([^)]+)\)$/);
+    if (match) nodeType = match[1];
+  }
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
@@ -39,6 +46,11 @@ export default function NodeDetailsModal({ open, onClose, nodeData, position }: 
           <span className="font-medium text-[#4a5568]">Label:</span>
           {' '}
           <span className="font-bold text-[#4a5568]">{nodeData.label}</span>
+        </div>
+        <div className="mb-2">
+          <span className="font-medium text-[#4a5568]">Node Type:</span>
+          {' '}
+          <span className="font-bold text-[#4a5568]">{nodeType}</span>
         </div>
         {/* Add more config fields here as needed */}
       </div>

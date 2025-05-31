@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useCallback } from 'react';
-import { ReactFlow, Background, Controls, Node, Edge, NodeMouseHandler } from '@xyflow/react';
+import { ReactFlow, Background, Controls, Node, Edge, NodeMouseHandler, OnNodesChange, applyNodeChanges, NodeChange } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CUSTOMER_SUCCESS_WORKFLOW, WorkflowNode } from '../constants/workflow';
 import NodeDetailsModal from './NodeDetailsModal';
@@ -15,12 +15,14 @@ function treeToFlow(
   posX: number = 0
 ): { nodes: Node[]; edges: Edge[] } {
   const nodeId = node.id;
+  const labelWithType = `${node.label} (${node.type})`;
   nodes.push({
     id: nodeId,
-    data: { label: node.label },
+    data: { label: labelWithType },
     position: { x: posX * 250, y: level * 100 },
     style: { color: '#2c3e50', fontWeight: 600 },
     type: 'default',
+    draggable: true,
   });
   if (parentId) {
     edges.push({
@@ -39,7 +41,8 @@ function treeToFlow(
 }
 
 export default function WorkflowDiagram() {
-  const { nodes, edges } = useMemo(() => treeToFlow(CUSTOMER_SUCCESS_WORKFLOW), []);
+  const { nodes: initialNodes, edges } = useMemo(() => treeToFlow(CUSTOMER_SUCCESS_WORKFLOW), []);
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string } | null>(null);
   const [modalPos, setModalPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -48,9 +51,19 @@ export default function WorkflowDiagram() {
     setModalPos({ x: event.clientX, y: event.clientY });
   }, []);
 
+  const onNodesChange: OnNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
+
   return (
     <div style={{ width: '100%', height: 600, background: '#f5f8ff', borderRadius: 8 }}>
-      <ReactFlow nodes={nodes} edges={edges} fitView onNodeClick={onNodeClick}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        fitView
+        onNodeClick={onNodeClick}
+        onNodesChange={onNodesChange}
+      >
         <Background />
         <Controls />
       </ReactFlow>
