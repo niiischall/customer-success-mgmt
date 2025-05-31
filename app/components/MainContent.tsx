@@ -24,7 +24,7 @@ export default function MainContent({ isEditMode, workflow }: MainContentProps) 
               ? 'You are in edit mode. You can modify the workflow here.'
               : 'You are in view mode. You can view the workflow here.'}
           </p>
-          <WorkflowDiagram />
+          <WorkflowDiagram isEditMode={isEditMode} />
           {workflow?.lastModified && (
             <p className='text-sm text-gray-500 mt-4 mb-4'>
               Last modified: {workflow.lastModified.toLocaleDateString()}
